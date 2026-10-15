@@ -563,7 +563,6 @@ video {
   max-width: 780px;
   margin: 16px auto;
   font-size: 0.95rem;
-  display: flex;
   align-items: center;
   gap: 12px;
 }
