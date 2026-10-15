@@ -57,6 +57,37 @@ app.post('/api/download', async (req, res) => {
   }
 });
 
+// API: Debug endpoint to diagnose cloud environment
+app.get('/api/debug-resolve', async (req, res) => {
+  const url = req.query.url || 'https://terasharelink.com/s/1qRyqtHe4m7FCycqpsiEDsA';
+  const debug = {};
+  
+  try {
+    const t0 = Date.now();
+    const r1 = await fetch('https://iteraplay.com/', {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+      signal: AbortSignal.timeout(8000)
+    });
+    debug.iteraplay_home = {
+      status: r1.status,
+      timeMs: Date.now() - t0,
+      cookies: r1.headers.get('set-cookie') || null,
+      preview: (await r1.text()).substring(0, 150)
+    };
+  } catch (e) {
+    debug.iteraplay_home_err = e.message;
+  }
+
+  try {
+    const { resolveIteraPlay } = require('./resolvers/iteraplay');
+    debug.iteraRes = await resolveIteraPlay(url, '/api/stream');
+  } catch (e) {
+    debug.iteraErr = e.message;
+  }
+
+  return res.json(debug);
+});
+
 // Video Streaming Proxy (Zero-disk cache, in-memory stream pipe only)
 app.get('/api/proxy-stream', async (req, res) => {
   const targetUrl = req.query.url;
