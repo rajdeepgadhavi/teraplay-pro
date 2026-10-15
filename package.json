@@ -1,0 +1,14 @@
+{
+  "name": "iteraplay-clone",
+  "version": "1.0.0",
+  "description": "Reverse engineered, full-featured, working clone of iTeraPlay - TeraBox Video Player & Downloader",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "puppeteer-core": "^25.14.0"
+  }
+}

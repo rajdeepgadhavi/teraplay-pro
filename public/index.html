@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TeraPlay – Best TeraBox Video Player & Downloader Online</title>
+  <meta name="description" content="Watch TeraBox videos online and download files instantly using TeraBox links. Clean, fast, secure, and ad-free experience without installing any app.">
+  
+  <!-- Plyr CSS -->
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+  <!-- App Styles -->
+  <link rel="stylesheet" href="/style.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="/" class="brand-logo">
+        <div class="brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </div>
+        <span>TeraPlay</span>
+        <span class="brand-badge">PRO</span>
+      </a>
+
+      <div class="nav-actions">
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#faq" class="nav-link">FAQ</a>
+        <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+          ☀️ Light Mode
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="pill-badge">
+        <span>🛡️ 100% EPHEMERAL & ZERO-TRACE RESOLVER</span>
+      </div>
+      <h1 class="hero-title">Watch & Download TeraBox Videos Online</h1>
+      <p class="hero-subtitle">
+        Tired of slow downloads and endless ads? Paste any TeraBox link to stream instantly in HD or download files directly at maximum speed.
+      </p>
+
+      <!-- Input Card -->
+      <div class="input-card">
+        <div class="input-group">
+          <input 
+            type="text" 
+            id="terabox-url" 
+            class="url-input" 
+            placeholder="Paste your TeraBox link here (e.g. https://terabox.com/s/1...)"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <div class="input-buttons">
+            <button id="btn-clear" class="btn-clear" type="button" title="Clear input" style="display: none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              <span>CLEAR</span>
+            </button>
+            <button id="btn-paste" class="btn-paste" type="button" title="Paste from clipboard">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+              <span>PASTE</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button id="btn-play" class="btn-action btn-play">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            <span>Play Online</span>
+          </button>
+          <button id="btn-download" class="btn-action btn-download">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            <span>Fast Download</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Error Notification -->
+      <div id="error-banner" class="error-banner">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span id="error-text">An error occurred</span>
+      </div>
+
+      <!-- Supported Domains Tags -->
+      <div class="domains-tag-row">
+        <span>Supports:</span>
+        <span class="domain-pill">terabox.com</span>
+        <span class="domain-pill">1024terabox.com</span>
+        <span class="domain-pill">teraboxapp.com</span>
+        <span class="domain-pill">teraboxshare.com</span>
+        <span class="domain-pill">nephobox.com</span>
+        <span class="domain-pill">4funbox.com</span>
+        <span class="domain-pill">mirrobox.com</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Loading State -->
+  <div id="loading-box" class="container loading-box">
+    <div class="spinner"></div>
+    <h3 id="loading-text" style="font-weight: 700; margin-bottom: 6px;">Processing Link...</h3>
+    <p style="color: var(--text-secondary); font-size: 0.9rem;">Connecting to multi-server resolvers and extracting stream URLs...</p>
+  </div>
+
+  <!-- Player & Results Section -->
+  <main id="result-section" class="container result-section">
+    <!-- Active Video Card -->
+    <div class="player-card">
+      <div class="player-header">
+        <div id="video-info" style="overflow: hidden;">
+          <h2 id="video-title" class="video-info-title">Loading video title...</h2>
+        </div>
+        <div class="video-badges">
+          <span id="video-size" class="badge badge-size">-- MB</span>
+          <span id="video-quality" class="badge badge-res">HD</span>
+        </div>
+      </div>
+
+      <!-- Video Player Frame -->
+      <div class="video-container">
+        <video id="main-video" playsinline controls preload="metadata"></video>
+      </div>
+
+      <!-- Action Toolbar -->
+      <div class="player-actions">
+        <div class="action-btn-group">
+          <a id="btn-direct-download" href="#" class="btn-secondary" style="background: var(--success); color: white; border: none;" target="_blank" download>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Direct Download</span>
+          </a>
+          <a id="btn-proxy-download" href="#" class="btn-secondary" title="High speed proxy download if direct link expires">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+            <span>Proxy Download</span>
+          </a>
+        </div>
+        <div class="action-btn-group">
+          <button id="btn-copy-link" class="btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span>Copy Link</span>
+          </button>
+          <button id="btn-purge" class="btn-secondary" style="color: #f87171; border-color: rgba(239, 68, 68, 0.3);" title="Wipe all buffers, video, and memory">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <span>Purge & Close</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Multi-file Folder / Album Card -->
+    <div id="album-card" class="album-card" style="display: none;">
+      <h3 id="album-count" class="album-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>Files in Folder</span>
+      </h3>
+      <div id="file-grid" class="file-grid"></div>
+    </div>
+  </main>
+
+  <!-- Features Grid -->
+  <section id="features" class="features-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Why Choose TeraPlay?</h2>
+        <p class="section-subtitle">Engineered for speed, privacy, and seamless video streaming</p>
+      </div>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🚀</div>
+          <h3 class="feature-title">Lightning Fast</h3>
+          <p class="feature-desc">Processes links in 1-2 seconds with multi-tier reverse proxies and instant direct streaming links.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🎬</div>
+          <h3 class="feature-title">Zero Buffering Player</h3>
+          <p class="feature-desc">Built-in Plyr player supports HTTP Range chunking, playback speed controls, and picture-in-picture.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">💎</div>
+          <h3 class="feature-title">100% Ad-Free</h3>
+          <p class="feature-desc">No deceptive download buttons, popups, redirects, or intrusive tracking. Clean and distraction-free.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📁</div>
+          <h3 class="feature-title">Folder & Album Support</h3>
+          <p class="feature-desc">Seamlessly explore shared folders and playlists. Pick and stream any video in multi-file shares.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3 class="feature-title">Works Everywhere</h3>
+          <p class="feature-desc">Responsive on iPhone, iPad, Android, and Desktop browsers. No app installation or registration needed.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3 class="feature-title">Private & Anonymous</h3>
+          <p class="feature-desc">We do not store your IP address or watch history on servers. All bookmarks stay local in your browser.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Accordion -->
+  <section id="faq" class="faq-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <p class="section-subtitle">Everything you need to know about playing and downloading TeraBox links</p>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Do I need to install any software or app?</span>
+            <span class="faq-icon">▼</span>
+          </button>
+          <div class="faq-answer">
+            No, TeraPlay is completely web-based! You can stream videos directly in your browser or download them without installing any mobile app or desktop client.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Is there a limit on video size or duration?</span>
+            <span class="faq-icon">▼</span>
+          </button>
+          <div class="faq-answer">
+            Our multi-engine resolver can handle files of any size or duration. Large 4K videos or multi-gigabyte files can be streamed or downloaded smoothly using our Range-enabled proxy.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Why is my TeraBox link not downloading?</span>
+            <span class="faq-icon">▼</span>
+          </button>
+          <div class="faq-answer">
+            Make sure the link is active and publicly shared. If the owner has deleted the file or password-protected the folder, TeraBox will reject the request.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Which TeraBox domains are supported?</span>
+            <span class="faq-icon">▼</span>
+          </button>
+          <div class="faq-answer">
+            We support all official and mirror domains including terabox.com, 1024terabox.com, teraboxapp.com, teraboxshare.com, nephobox.com, 4funbox.com, mirrobox.com, and momerybox.com.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>How does the streaming proxy work?</span>
+            <span class="faq-icon">▼</span>
+          </button>
+          <div class="faq-answer">
+            Direct video links often block cross-origin browser playback with CORS or referer checks. Our server provides a built-in proxy with HTTP 206 Partial Content support, enabling smooth seeking and buffer-free playback.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+        <div class="brand-logo" style="font-size: 1.15rem;">
+          <div class="brand-icon" style="width: 28px; height: 28px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </div>
+          <span>TeraPlay</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">
+          This service acts as a streaming and resolution client for publicly shared links. Not affiliated with TeraBox.
+        </p>
+      </div>
+      <div class="footer-bottom">
+        © 2026 TeraPlay. All rights reserved. Reverse-Engineered & Independent Version.
+      </div>
+    </div>
+  </footer>
+
+  <!-- HLS.js for .m3u8 streaming in all modern browsers -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <!-- Plyr Video Library -->
+  <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+  <!-- Client Logic -->
+  <script src="/app.js"></script>
+</body>
+</html>
