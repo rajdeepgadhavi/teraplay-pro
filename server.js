@@ -100,13 +100,30 @@ app.get('/api/proxy-stream', async (req, res) => {
     return res.status(400).send('URL query parameter required');
   }
 
+  const cookieVal = process.env.TERABOX_COOKIE || 
+                    process.env.NDUS || 
+                    process.env.ndus || 
+                    process.env.COOKIE || 
+                    process.env.cookie || 
+                    process.env.TERABOX_NDUS || '';
+  let ndus = cookieVal;
+  if (cookieVal.includes('ndus=')) {
+    const match = cookieVal.match(/ndus=([^;]+)/);
+    if (match) ndus = match[1].trim();
+  }
+
   try {
     const client = targetUrl.startsWith('https:') ? https : http;
+    const isTeraBox = /terabox|1024tera|nephobox|4funbox|mirrobox/i.test(targetUrl);
     const clientReqHeaders = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
       'Accept': '*/*',
-      'Referer': 'https://iteraplay.com/',
+      'Referer': isTeraBox ? 'https://www.terabox.app/' : 'https://iteraplay.com/',
     };
+
+    if (ndus && isTeraBox) {
+      clientReqHeaders['Cookie'] = `ndus=${ndus}; lang=en`;
+    }
 
     if (req.headers.range) {
       clientReqHeaders['Range'] = req.headers.range;
@@ -157,12 +174,29 @@ app.get('/api/proxy-download', async (req, res) => {
     return res.status(400).send('URL query parameter required');
   }
 
+  const cookieVal = process.env.TERABOX_COOKIE || 
+                    process.env.NDUS || 
+                    process.env.ndus || 
+                    process.env.COOKIE || 
+                    process.env.cookie || 
+                    process.env.TERABOX_NDUS || '';
+  let ndus = cookieVal;
+  if (cookieVal.includes('ndus=')) {
+    const match = cookieVal.match(/ndus=([^;]+)/);
+    if (match) ndus = match[1].trim();
+  }
+
   try {
     const client = targetUrl.startsWith('https:') ? https : http;
+    const isTeraBox = /terabox|1024tera|nephobox|4funbox|mirrobox/i.test(targetUrl);
     const clientReqHeaders = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Referer': 'https://iteraplay.com/',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      'Referer': isTeraBox ? 'https://www.terabox.app/' : 'https://iteraplay.com/',
     };
+
+    if (ndus && isTeraBox) {
+      clientReqHeaders['Cookie'] = `ndus=${ndus}; lang=en`;
+    }
 
     const proxyReq = client.get(targetUrl, { headers: clientReqHeaders }, (proxyRes) => {
       if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400 && proxyRes.headers.location) {

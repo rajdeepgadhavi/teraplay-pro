@@ -340,8 +340,13 @@ function loadFile(index, autoPlay = true) {
   document.getElementById('video-size').textContent = file.size_formatted;
   document.getElementById('video-quality').textContent = file.duration && file.duration !== '0:00' ? file.duration : 'HD VIDEO';
 
-  const streamUrl = file.fast_stream_url || file.fast_download_url;
-  const downloadUrl = file.fast_download_url || file.fast_stream_url;
+  const rawStream = file.fast_stream_url || file.fast_download_url;
+  const rawDownload = file.fast_download_url || file.fast_stream_url;
+
+  let streamUrl = rawStream;
+  if (rawStream && (/terabox|1024tera|nephobox|4funbox|mirrobox/i.test(rawStream) || !rawStream.includes('.m3u8'))) {
+    streamUrl = `/api/proxy-stream?url=${encodeURIComponent(rawStream)}`;
+  }
 
   if (streamUrl) {
     setVideoSource(streamUrl, file.thumbnail, autoPlay);
@@ -351,12 +356,12 @@ function loadFile(index, autoPlay = true) {
   const proxyDlBtn = document.getElementById('btn-proxy-download');
   const copyLinkBtn = document.getElementById('btn-copy-link');
 
-  if (downloadUrl) {
-    directDlBtn.href = downloadUrl;
-    directDlBtn.style.display = 'inline-flex';
-
-    proxyDlBtn.href = `/api/proxy-download?url=${encodeURIComponent(downloadUrl)}&name=${encodeURIComponent(file.name)}`;
+  if (rawDownload) {
+    proxyDlBtn.href = `/api/proxy-download?url=${encodeURIComponent(rawDownload)}&name=${encodeURIComponent(file.name)}`;
     proxyDlBtn.style.display = 'inline-flex';
+
+    directDlBtn.href = rawDownload;
+    directDlBtn.style.display = 'inline-flex';
   } else {
     directDlBtn.style.display = 'none';
     proxyDlBtn.style.display = 'none';
