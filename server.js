@@ -93,6 +93,9 @@ app.get('/api/debug-resolve', async (req, res) => {
   return res.json(debug);
 });
 
+// In-memory cache for CDN redirect locations to bypass 700ms 302 handshake on every chunk
+const cdnRedirectCache = new Map();
+
 // Video Streaming Proxy (Zero-disk cache, in-memory stream pipe only)
 app.get('/api/proxy-stream', async (req, res) => {
   const targetUrl = req.query.url;
@@ -113,7 +116,6 @@ app.get('/api/proxy-stream', async (req, res) => {
   }
 
   try {
-    const client = targetUrl.startsWith('https:') ? https : http;
     const isTeraBox = /terabox|1024tera|nephobox|4funbox|mirrobox/i.test(targetUrl);
     const clientReqHeaders = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -125,7 +127,8 @@ app.get('/api/proxy-stream', async (req, res) => {
       clientReqHeaders['Cookie'] = `ndus=${ndus}; lang=en`;
     }
 
-    const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB chunking for Vercel Serverless payload safety
+    // 3.5 MB chunks: maximizes buffer speed while staying safely under Vercel's 4.5 MB payload limit
+    const CHUNK_SIZE = Math.floor(3.5 * 1024 * 1024);
     if (req.headers.range) {
       const parts = req.headers.range.replace(/bytes=/, '').split('-');
       const start = parseInt(parts[0], 10) || 0;
@@ -138,6 +141,13 @@ app.get('/api/proxy-stream', async (req, res) => {
       clientReqHeaders['Range'] = `bytes=0-${CHUNK_SIZE - 1}`;
     }
 
+    // Fast-path: Check if we already have the direct CDN node cached
+    let initialUrl = targetUrl;
+    const cachedRedirect = cdnRedirectCache.get(targetUrl);
+    if (cachedRedirect && (Date.now() - cachedRedirect.time < 30 * 60 * 1000)) {
+      initialUrl = cachedRedirect.url;
+    }
+
     function makeStreamRequest(currentUrl, redirectCount = 0) {
       if (redirectCount > 5) {
         if (!res.headersSent) res.status(502).send('Too many redirects');
@@ -146,7 +156,14 @@ app.get('/api/proxy-stream', async (req, res) => {
       const client = currentUrl.startsWith('https:') ? https : http;
       const proxyReq = client.get(currentUrl, { headers: clientReqHeaders }, (proxyRes) => {
         if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400 && proxyRes.headers.location) {
+          cdnRedirectCache.set(targetUrl, { url: proxyRes.headers.location, time: Date.now() });
           return makeStreamRequest(proxyRes.headers.location, redirectCount + 1);
+        }
+
+        // If cached CDN node returned 403 or error, evict cache and retry from original URL
+        if (proxyRes.statusCode === 403 && currentUrl !== targetUrl) {
+          cdnRedirectCache.delete(targetUrl);
+          return makeStreamRequest(targetUrl, redirectCount + 1);
         }
 
         res.status(proxyRes.statusCode);
