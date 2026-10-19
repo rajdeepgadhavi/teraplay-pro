@@ -60,10 +60,12 @@ app.post('/api/download', async (req, res) => {
 // API: Debug endpoint to diagnose cloud environment
 app.get('/api/debug-resolve', async (req, res) => {
   const url = req.query.url || 'https://terasharelink.com/s/1qRyqtHe4m7FCycqpsiEDsA';
+  const cookieVal = process.env.TERABOX_COOKIE || process.env.NDUS || process.env.ndus || process.env.COOKIE || process.env.cookie || process.env.TERABOX_NDUS || '';
   const debug = {
-    hasCookie: Boolean(process.env.TERABOX_COOKIE || process.env.NDUS),
-    cookieLength: (process.env.TERABOX_COOKIE || '').length,
-    cookieSnippet: process.env.TERABOX_COOKIE ? (process.env.TERABOX_COOKIE.substring(0, 10) + '...') : 'NONE'
+    hasCookie: Boolean(cookieVal),
+    cookieLength: cookieVal.length,
+    cookieSnippet: cookieVal ? (cookieVal.substring(0, 10) + '...') : 'NONE',
+    envKeysFound: Object.keys(process.env).filter(k => /ndus|cookie|terabox/i.test(k))
   };
 
   try {

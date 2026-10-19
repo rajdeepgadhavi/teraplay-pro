@@ -43,13 +43,18 @@ async function resolveLink(url, action = 'stream') {
   try {
     const directRes = await resolveDirectTeraBox(url.trim());
     if (directRes.success && directRes.list && directRes.list.length > 0) {
-      return {
-        status: 'success',
-        provider: 'terabox_direct',
-        list: directRes.list,
-        total_folders: directRes.total_folders,
-        zip_download_link: directRes.zip_download_link
-      };
+      const hasStream = Boolean(directRes.list[0].fast_stream_url || directRes.list[0].fast_download_url);
+      if (hasStream) {
+        return {
+          status: 'success',
+          provider: 'terabox_direct',
+          list: directRes.list,
+          total_folders: directRes.total_folders,
+          zip_download_link: directRes.zip_download_link
+        };
+      } else {
+        specificError = 'TeraBox requires account authentication (NDUS cookie) to stream this video.';
+      }
     }
     if (directRes.is404) {
       return {

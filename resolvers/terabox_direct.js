@@ -57,7 +57,12 @@ function formatBytes(bytes) {
 }
 
 function getNdusCookie() {
-  const envCookie = process.env.TERABOX_COOKIE || process.env.NDUS || '';
+  const envCookie = process.env.TERABOX_COOKIE || 
+                    process.env.NDUS || 
+                    process.env.ndus || 
+                    process.env.COOKIE || 
+                    process.env.cookie || 
+                    process.env.TERABOX_NDUS || '';
   if (!envCookie) return '';
   if (envCookie.includes('ndus=')) {
     const match = envCookie.match(/ndus=([^;]+)/);
@@ -199,7 +204,7 @@ async function resolveDirectTeraBox(url) {
               name: item.server_filename || item.filename || 'TeraBox File',
               size: item.size || 0,
               size_formatted: formatBytes(item.size || 0),
-              fast_stream_url: item.dlink || item.direct_link || (item.thumbs ? item.thumbs.url3 : null),
+              fast_stream_url: item.dlink || item.direct_link || null,
               fast_download_url: item.dlink || item.direct_link || null,
               thumbnail: item.thumbs ? (item.thumbs.url3 || item.thumbs.url2 || item.thumbs.url1) : null,
               duration: item.duration ? `${Math.floor(item.duration / 60)}:${String(item.duration % 60).padStart(2, '0')}` : '0:00',
