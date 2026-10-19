@@ -125,8 +125,17 @@ app.get('/api/proxy-stream', async (req, res) => {
       clientReqHeaders['Cookie'] = `ndus=${ndus}; lang=en`;
     }
 
+    const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB chunking for Vercel Serverless payload safety
     if (req.headers.range) {
-      clientReqHeaders['Range'] = req.headers.range;
+      const parts = req.headers.range.replace(/bytes=/, '').split('-');
+      const start = parseInt(parts[0], 10) || 0;
+      let end = parts[1] ? parseInt(parts[1], 10) : (start + CHUNK_SIZE - 1);
+      if (end - start + 1 > CHUNK_SIZE) {
+        end = start + CHUNK_SIZE - 1;
+      }
+      clientReqHeaders['Range'] = `bytes=${start}-${end}`;
+    } else {
+      clientReqHeaders['Range'] = `bytes=0-${CHUNK_SIZE - 1}`;
     }
 
     const proxyReq = client.get(targetUrl, { headers: clientReqHeaders }, (proxyRes) => {
