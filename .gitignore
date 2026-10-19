@@ -3,3 +3,4 @@ node_modules/
 reverse_engineering/
 *.log
 .env
+cloudflared.exe

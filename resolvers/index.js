@@ -18,6 +18,8 @@ async function resolveLink(url, action = 'stream') {
   const endpoint = action === 'download' ? '/api/download' : '/api/stream';
   const hasCookie = Boolean(process.env.TERABOX_COOKIE || process.env.NDUS);
 
+  let specificError = null;
+
   // Strategy 1: If user provided a TeraBox cookie, try Direct TeraBox first (guaranteed datacenter bypass)
   if (hasCookie) {
     try {
@@ -31,12 +33,37 @@ async function resolveLink(url, action = 'stream') {
           zip_download_link: directRes.zip_download_link
         };
       }
+      if (directRes.error) specificError = directRes.error;
     } catch (err) {
       console.warn('[Resolver] Direct engine with cookie failed:', err.message);
     }
   }
 
-  // Strategy 2: iTeraPlay Backend (works great on residential IPs)
+  // Strategy 2: Direct TeraBox API (Fast, zero rate-limit, detects 404s instantly)
+  try {
+    const directRes = await resolveDirectTeraBox(url.trim());
+    if (directRes.success && directRes.list && directRes.list.length > 0) {
+      return {
+        status: 'success',
+        provider: 'terabox_direct',
+        list: directRes.list,
+        total_folders: directRes.total_folders,
+        zip_download_link: directRes.zip_download_link
+      };
+    }
+    if (directRes.is404) {
+      return {
+        status: 'error',
+        error_type: 'not_found',
+        message: 'Yeh TeraBox link expire ho chuka hai ya TeraBox se delete ho gaya hai (TeraBox 404 Error). Kripya koi active working TeraBox link try karein.'
+      };
+    }
+    if (directRes.error) specificError = directRes.error;
+  } catch (err) {
+    console.warn('[Resolver] Direct engine failed:', err.message);
+  }
+
+  // Strategy 3: iTeraPlay Backend Fallback
   try {
     const iteraRes = await resolveIteraPlay(url.trim(), endpoint);
     if (iteraRes.success && iteraRes.list && iteraRes.list.length > 0) {
@@ -48,31 +75,14 @@ async function resolveLink(url, action = 'stream') {
         zip_download_link: iteraRes.zip_download_link
       };
     }
+    if (iteraRes.error) specificError = iteraRes.error;
   } catch (err) {
     console.warn('[Resolver] iTeraPlay engine failed:', err.message);
   }
 
-  // Strategy 3: Direct TeraBox API fallback (without cookie)
-  if (!hasCookie) {
-    try {
-      const directRes = await resolveDirectTeraBox(url.trim());
-      if (directRes.success && directRes.list && directRes.list.length > 0) {
-        return {
-          status: 'success',
-          provider: 'terabox_direct',
-          list: directRes.list,
-          total_folders: directRes.total_folders,
-          zip_download_link: directRes.zip_download_link
-        };
-      }
-    } catch (err) {
-      console.warn('[Resolver] Direct engine failed:', err.message);
-    }
-  }
-
   return {
     status: 'error',
-    message: 'Could not resolve this TeraBox link. Please verify that the link exists, is publicly accessible, and has not expired.'
+    message: specificError || 'Could not resolve this TeraBox link. Please verify that the link exists, is publicly accessible, and has not expired.'
   };
 }
 

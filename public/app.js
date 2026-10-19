@@ -213,6 +213,16 @@ function initEventListeners() {
     }
   });
 
+  // Demo test button
+  const demoBtn = document.getElementById('btn-try-demo');
+  if (demoBtn) {
+    demoBtn.addEventListener('click', () => {
+      input.value = 'https://terasharelink.com/s/1qRyqtHe4m7FCycqpsiEDsA';
+      updateClearButtonVisibility();
+      handleProcess('stream');
+    });
+  }
+
   // FAQ Accordion
   document.querySelectorAll('.faq-question').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -280,22 +290,28 @@ async function handleProcess(action = 'stream') {
       body: JSON.stringify({ url })
     });
 
-    const data = await resp.json();
+    let data;
+    try {
+      const rawText = await resp.text();
+      data = JSON.parse(rawText);
+    } catch (parseErr) {
+      showLoading(false);
+      showError('Server responded with an unexpected error. Please try again.');
+      return;
+    }
+
     showLoading(false);
 
     if (data.status === 'success' && data.list && data.list.length > 0) {
       currentFiles = data.list;
       activeFileIndex = 0;
       renderResults(data, action);
-      // Optional: Clear input so the link does not linger on screen
-      input.value = '';
-      updateClearButtonVisibility();
     } else {
       showError(data.message || 'Could not resolve this TeraBox link. Please verify that the link exists and is publicly accessible.');
     }
   } catch (err) {
     showLoading(false);
-    showError('Network error connecting to resolver server. Please try again.');
+    showError('Network error connecting to resolver server. Please check your internet connection.');
   }
 }
 

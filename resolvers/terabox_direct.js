@@ -66,7 +66,35 @@ function getNdusCookie() {
   return envCookie.trim();
 }
 
+async function checkTeraBoxLinkStatus(url) {
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+      },
+      redirect: 'manual',
+      signal: AbortSignal.timeout(4000)
+    });
+    const loc = res.headers.get('location') || '';
+    if (loc.includes('404') || res.status === 404) {
+      return { is404: true };
+    }
+  } catch (e) {}
+  return { is404: false };
+}
+
 async function resolveDirectTeraBox(url) {
+  const statusCheck = await checkTeraBoxLinkStatus(url);
+  if (statusCheck.is404) {
+    return {
+      success: false,
+      is404: true,
+      provider: 'direct',
+      error: 'Yeh TeraBox link expire ho chuka hai ya TeraBox se delete ho chuka hai (TeraBox 404 Error).'
+    };
+  }
+
   const ndus = getNdusCookie();
   const shorturls = extractShortUrls(url);
   if (shorturls.length === 0) {
