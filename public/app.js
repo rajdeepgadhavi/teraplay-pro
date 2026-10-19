@@ -301,6 +301,7 @@ async function handleProcess(action = 'stream') {
 
 // Render Results & Player
 function renderResults(data, action) {
+  hideError();
   const resultSection = document.getElementById('result-section');
   resultSection.style.display = 'block';
 

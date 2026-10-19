@@ -30,7 +30,7 @@ async function createFreshSession(ip) {
     const res = await fetch('https://iteraplay.com/', {
       headers,
       redirect: 'follow',
-      signal: AbortSignal.timeout(10000)
+      signal: AbortSignal.timeout(4000)
     });
 
     const setCookies = res.headers.getSetCookie ? res.headers.getSetCookie() : [res.headers.get('set-cookie')].filter(Boolean);
@@ -108,7 +108,7 @@ async function resolveIteraPlay(url, endpoint = '/api/stream') {
     method: 'POST',
     headers: postHeaders,
     body: JSON.stringify({ url }),
-    signal: AbortSignal.timeout(15000)
+    signal: AbortSignal.timeout(6000)
   });
 
   let data;
