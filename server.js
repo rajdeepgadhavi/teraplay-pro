@@ -201,6 +201,10 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 TeraPlay (Zero-Trace Mode) running at: http://localhost:${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`🚀 TeraPlay (Zero-Trace Mode) running at: http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
