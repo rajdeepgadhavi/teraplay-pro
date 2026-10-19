@@ -138,37 +138,46 @@ app.get('/api/proxy-stream', async (req, res) => {
       clientReqHeaders['Range'] = `bytes=0-${CHUNK_SIZE - 1}`;
     }
 
-    const proxyReq = client.get(targetUrl, { headers: clientReqHeaders }, (proxyRes) => {
-      if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400 && proxyRes.headers.location) {
-        return res.redirect(`/api/proxy-stream?url=${encodeURIComponent(proxyRes.headers.location)}`);
+    function makeStreamRequest(currentUrl, redirectCount = 0) {
+      if (redirectCount > 5) {
+        if (!res.headersSent) res.status(502).send('Too many redirects');
+        return;
       }
-
-      res.status(proxyRes.statusCode);
-
-      const forwardHeaders = ['content-range', 'content-length', 'content-type', 'accept-ranges'];
-      for (const h of forwardHeaders) {
-        if (proxyRes.headers[h]) {
-          res.setHeader(h, proxyRes.headers[h]);
+      const client = currentUrl.startsWith('https:') ? https : http;
+      const proxyReq = client.get(currentUrl, { headers: clientReqHeaders }, (proxyRes) => {
+        if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400 && proxyRes.headers.location) {
+          return makeStreamRequest(proxyRes.headers.location, redirectCount + 1);
         }
-      }
 
-      if (!proxyRes.headers['content-type'] || proxyRes.headers['content-type'].includes('application/octet-stream')) {
-        res.setHeader('Content-Type', 'video/mp4');
-      }
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Accept-Ranges', 'bytes');
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        res.status(proxyRes.statusCode);
 
-      proxyRes.pipe(res);
-    });
+        const forwardHeaders = ['content-range', 'content-length', 'content-type', 'accept-ranges'];
+        for (const h of forwardHeaders) {
+          if (proxyRes.headers[h]) {
+            res.setHeader(h, proxyRes.headers[h]);
+          }
+        }
 
-    proxyReq.on('error', () => {
-      if (!res.headersSent) res.status(502).send('Stream error');
-    });
+        if (!proxyRes.headers['content-type'] || proxyRes.headers['content-type'].includes('application/octet-stream')) {
+          res.setHeader('Content-Type', 'video/mp4');
+        }
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Accept-Ranges', 'bytes');
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
 
-    req.on('close', () => {
-      proxyReq.destroy();
-    });
+        proxyRes.pipe(res);
+      });
+
+      proxyReq.on('error', () => {
+        if (!res.headersSent) res.status(502).send('Stream error');
+      });
+
+      req.on('close', () => {
+        proxyReq.destroy();
+      });
+    }
+
+    makeStreamRequest(targetUrl);
 
   } catch {
     if (!res.headersSent) res.status(500).send('Stream error');
