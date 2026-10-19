@@ -194,7 +194,7 @@ app.get('/api/proxy-stream', async (req, res) => {
       });
     }
 
-    makeStreamRequest(targetUrl);
+    makeStreamRequest(initialUrl);
 
   } catch {
     if (!res.headersSent) res.status(500).send('Stream error');
